@@ -4,7 +4,6 @@ import { cookies, headers } from 'next/headers';
 const bucketConfig = {
   bucketSlug: process.env.COSMIC_BUCKET_SLUG as string,
   readKey: process.env.COSMIC_READ_KEY as string,
-  writeKey: process.env.COSMIC_WRITE_KEY as string,
 };
 
 const cosmic = createBucketClient(bucketConfig);
@@ -18,13 +17,16 @@ export async function getCosmic(): Promise<GetCosmicResult> {
   let previewToken: string | null = null;
 
   try {
-    const cookieStore = await cookies();
-    const cookieToken = cookieStore.get('cosmic_preview_token')?.value;
-
+    // The middleware forwards the token as a request header on the very first
+    // framed request (the response cookie is not readable yet at that point),
+    // then the cookie keeps preview alive for subsequent navigations.
     const headerList = await headers();
     const headerToken = headerList.get('x-cosmic-preview-token');
 
-    previewToken = cookieToken || headerToken || null;
+    const cookieStore = await cookies();
+    const cookieToken = cookieStore.get('cosmic_preview')?.value;
+
+    previewToken = headerToken || cookieToken || null;
   } catch {
     previewToken = null;
   }
@@ -32,7 +34,7 @@ export async function getCosmic(): Promise<GetCosmicResult> {
   if (previewToken) {
     const previewClient = createBucketClient({
       ...bucketConfig,
-      apiEnvironment: 'staging',
+      previewToken,
     });
 
     return { cosmic: previewClient, previewToken };
