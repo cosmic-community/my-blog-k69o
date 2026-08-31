@@ -5,6 +5,7 @@ import { getAllPosts, getPostBySlug, getMetafieldValue } from '@/lib/cosmic';
 import CategoryBadge from '@/components/CategoryBadge';
 import TagList from '@/components/TagList';
 import AuthorByline from '@/components/AuthorByline';
+import Markdown from '@/components/Markdown';
 
 export async function generateStaticParams() {
   const posts = await getAllPosts();
@@ -92,10 +93,9 @@ export default async function PostPage({
           className="mt-10 w-full rounded-2xl object-cover"
         />
       )}
-      <div
-        className="prose prose-lg dark:prose-invert mt-10 max-w-none prose-headings:font-serif prose-a:text-teal-700 dark:prose-a:text-teal-400"
-        dangerouslySetInnerHTML={{ __html: content }}
-      />
+      <Markdown className="prose prose-lg dark:prose-invert mt-10 max-w-none prose-headings:font-serif prose-a:text-teal-700 dark:prose-a:text-teal-400">
+        {content}
+      </Markdown>
       {tags && tags.length > 0 && (
         <div className="mt-12">
           <TagList tags={tags} />
